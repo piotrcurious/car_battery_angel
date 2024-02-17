@@ -88,6 +88,81 @@ void blink_led(int times, int duration) {
   }
 }
 
+// Create a function to analyze the files stored on SD card
+void analyze_files() {
+  // Create an array to store the sample voltages
+  float sample_voltages[100];
+
+  // Create a variable to store the index of the array
+  int sample_index = 0;
+
+  // Open the root directory of the SD card
+  File root = SD.open("/");
+
+  // Loop through all the files in the root directory
+  while (true) {
+    // Read the next file
+    File file = root.openNextFile();
+
+    // Check if the file exists
+    if (!file) {
+      // If the file does not exist, break the loop
+      break;
+    }
+
+    // Check if the file is a text file
+    if (file.name()[strlen(file.name()) - 4] == '.') {
+      // If the file is a text file, print its name
+      Serial.print("Analyzing file: ");
+      Serial.println(file.name());
+
+      // Create a variable to store the line number
+      int line_number = 0;
+
+      // Create a variable to store the voltage value
+      float voltage_value = 0.0;
+
+      // Loop through all the lines in the file
+      while (file.available()) {
+        // Read the next line
+        String line = file.readStringUntil('\n');
+
+        // Convert the line to a float
+        voltage_value = line.toFloat();
+
+        // Increment the line number
+        line_number++;
+
+        // Check if the line number is 30
+        if (line_number == 30) {
+          // If the line number is 30, this means 5 hours have passed since the beginning of the array
+          // Store the voltage value in the sample voltages array
+          sample_voltages[sample_index] = voltage_value;
+
+          // Increment the sample index
+          sample_index++;
+
+          // Break the loop
+          break;
+        }
+      }
+
+      // Close the file
+      file.close();
+    }
+  }
+
+  // Close the root directory
+  root.close();
+
+  // Print the sample voltages array
+  Serial.println("Sample voltages:");
+  for (int i = 0; i < sample_index; i++) {
+    Serial.println(sample_voltages[i]);
+  }
+}
+
+
 // Setup function
 void setup() {
   // Initialize the serial monitor
